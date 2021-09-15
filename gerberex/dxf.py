@@ -663,6 +663,8 @@ class DxfFile(CamFile):
         for entity in dxf.entities:
             if entity.dxftype == 'LWPOLYLINE':
                 statements.append(DxfPolylineStatement(entity))
+            elif entity.dxftype == 'POLYLINE':
+                statements.append(DxfPolylineStatement(entity))
             elif entity.dxftype == 'LINE':
                 statements.append(DxfLineStatement.from_entity(entity))
             elif entity.dxftype == 'CIRCLE':
