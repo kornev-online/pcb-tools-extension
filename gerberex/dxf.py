@@ -649,14 +649,15 @@ class DxfFile(CamFile):
         fsettings = settings if settings else \
             FileSettings(zero_suppression='leading')
 
-        if dxf.header['$INSUNITS'] == 1:
-            fsettings.units = 'inch'
-            if not settings:
-                fsettings.format = (2, 5)
-        else:
-            fsettings.units = 'metric'
-            if not settings:
-                fsettings.format = (3, 4)
+        if '$INSUNITS' in dxf.header:      
+            if dxf.header['$INSUNITS'] == 1:
+                fsettings.units = 'inch'
+                if not settings:
+                    fsettings.format = (2, 5)
+            else:
+                fsettings.units = 'metric'
+                if not settings:
+                    fsettings.format = (3, 4)
 
         statements = []
         for entity in dxf.entities:
