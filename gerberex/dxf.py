@@ -675,8 +675,6 @@ class DxfFile(CamFile):
                 statements.append(DxfArcStatement(entity))
             elif entity.dxftype == 'ARC':
                 statements.append(DxfArcStatement(entity))
-            elif entity.dxftype == 'ELLIPSE':
-                statements.append(DxfArcStatement(entity))
          
         return cls(statements, fsettings, draw_mode, filename)
     
