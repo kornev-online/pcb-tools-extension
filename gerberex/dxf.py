@@ -23,8 +23,8 @@ def _normalize_angle(start_angle, end_angle):
     if angle > 0:
         start = start_angle % 360
     else:
-        angle = -angle
-        start = end_angle % 360
+        end_angle = 360 - end_angle
+        start = start_angle % 360
     angle = min(angle, 360)
     start = start - 360 if  start > 180 else start
 
@@ -39,7 +39,8 @@ def _normalize_angle(start_angle, end_angle):
             angle = end - 180
             start = -180
     return regions
-
+print(_normalize_angle(360, 90))
+print(_normalize_angle(0, 90))
 def _intersections_of_line_and_circle(start, end, center, radius, error_range):
     x1 = start[0] - center[0]
     y1 = start[1] - center[1]
@@ -671,7 +672,9 @@ class DxfFile(CamFile):
                 statements.append(DxfArcStatement(entity))
             elif entity.dxftype == 'ARC':
                 statements.append(DxfArcStatement(entity))
-        
+            elif entity.dxftype == 'ELLIPSE':
+                statements.append(DxfArcStatement(entity))
+         
         return cls(statements, fsettings, draw_mode, filename)
     
     @classmethod
