@@ -20,16 +20,7 @@ ACCEPTABLE_ERROR = 0.001
 
 def _normalize_angle(start_angle, end_angle):
     angle = end_angle - start_angle
-    if angle > 0:
-        start = start_angle % 360
-    else:
-        if ((360 - end_angle) - start_angle) > 0:
-            end_angle = 360 - end_angle
-            angle = end_angle - start_angle
-        else:
-            start_angle = 360 - start_angle
-            angle = end_angle - start_angle
-        start = start_angle % 360
+    start = start_angle % 360
     angle = min(angle, 360)
     regions = []
     while angle > 0:
@@ -42,6 +33,8 @@ def _normalize_angle(start_angle, end_angle):
             angle = end - 180
             start = -180
     return regions
+
+print(_normalize_angle(359.9980635513, 89.0978847418))
 
 def _intersections_of_line_and_circle(start, end, center, radius, error_range):
     x1 = start[0] - center[0]
@@ -259,6 +252,12 @@ class DxfArcStatement(DxfStatement):
         elif entity.dxftype == 'ARC':
             self.start_angle = self.entity.start_angle
             self.end_angle = self.entity.end_angle
+            angle = self.entity.end_angle - self.entity.start_angle
+            if angle < 0:
+                if ((360 - self.entity.end_angle) - self.entity.start_angle) > 0:
+                    self.end_angle = 360 - self.entity.end_angle
+                else:
+                    self.start_angle = 360 - self.entity.start_angle
             self.radius = self.entity.radius
             self.center = (self.entity.center[0], self.entity.center[1])
             self.start = (
