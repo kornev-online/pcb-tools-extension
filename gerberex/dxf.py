@@ -20,7 +20,16 @@ ACCEPTABLE_ERROR = 0.001
 
 def _normalize_angle(start_angle, end_angle):
     angle = end_angle - start_angle
-    start = start_angle % 360
+    if angle > 0:
+        start = start_angle % 360
+    else:
+        if ((360 - end_angle) - start_angle) > 0:
+            end_angle = 360 - end_angle
+            angle = end_angle - start_angle
+        else:
+            start_angle = 360 - start_angle
+            angle = end_angle - start_angle
+        start = start_angle % 360
     angle = min(angle, 360)
     regions = []
     while angle > 0:
@@ -33,8 +42,6 @@ def _normalize_angle(start_angle, end_angle):
             angle = end - 180
             start = -180
     return regions
-
-print(_normalize_angle(359.9980635513, 89.0978847418))
 
 def _intersections_of_line_and_circle(start, end, center, radius, error_range):
     x1 = start[0] - center[0]
@@ -540,7 +547,7 @@ class DxfStatements(object):
 
     @property
     def units(self):
-        return _units
+        return self._units
 
     def _polarity_command(self, polarity=None):
         if polarity is None:
