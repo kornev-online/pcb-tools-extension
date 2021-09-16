@@ -260,7 +260,7 @@ class DxfArcStatement(DxfStatement):
             self.start_angle = self.entity.start_angle
             self.end_angle = self.entity.end_angle
             angle = self.entity.end_angle - self.entity.start_angle
-            if angle < 0:
+            if not hasattr(self.entity, 'polyline') and angle < 0:
                 if ((360 - self.entity.end_angle) - self.entity.start_angle) > 0:
                     self.end_angle = 360 - self.entity.end_angle
                 else:
@@ -491,6 +491,7 @@ class DxfPolylineStatement(DxfStatement):
                 item.end = (x1, y1)
                 item.start_angle = start_angle
                 item.end_angle = end_angle
+                item.polyline = True
                 item.radius = r
                 item.center = (xc, yc)
                 item.is_closed = end_angle - start_angle >= 360
