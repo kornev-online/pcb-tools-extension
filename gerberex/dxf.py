@@ -23,15 +23,18 @@ def _normalize_angle(start_angle, end_angle):
     if angle > 0:
         start = start_angle % 360
     else:
-        angle = -angle
-        start = end_angle % 360
+        if ((360 - end_angle) - start_angle) > 0:
+            end_angle = 360 - end_angle
+            angle = end_angle - start_angle
+        else:
+            start_angle = 360 - start_angle
+            angle = end_angle - start_angle
+        start = start_angle % 360
     angle = min(angle, 360)
-    start = start - 360 if  start > 180 else start
-
     regions = []
     while angle > 0:
         end = start + angle
-        if  end <= 180:
+        if angle <= 180:
             regions.append((start * pi / 180, end * pi / 180))
             angle = 0
         else:
@@ -256,6 +259,12 @@ class DxfArcStatement(DxfStatement):
         elif entity.dxftype == 'ARC':
             self.start_angle = self.entity.start_angle
             self.end_angle = self.entity.end_angle
+            angle = self.entity.end_angle - self.entity.start_angle
+            if not hasattr(self.entity, 'polyline') and angle < 0:
+                if ((360 - self.entity.end_angle) - self.entity.start_angle) > 0:
+                    self.end_angle = 360 - self.entity.end_angle
+                else:
+                    self.start_angle = 360 - self.entity.start_angle
             self.radius = self.entity.radius
             self.center = (self.entity.center[0], self.entity.center[1])
             self.start = (
@@ -482,6 +491,7 @@ class DxfPolylineStatement(DxfStatement):
                 item.end = (x1, y1)
                 item.start_angle = start_angle
                 item.end_angle = end_angle
+                item.polyline = True
                 item.radius = r
                 item.center = (xc, yc)
                 item.is_closed = end_angle - start_angle >= 360
@@ -538,7 +548,7 @@ class DxfStatements(object):
 
     @property
     def units(self):
-        return _units
+        return self._units
 
     def _polarity_command(self, polarity=None):
         if polarity is None:
@@ -649,18 +659,21 @@ class DxfFile(CamFile):
         fsettings = settings if settings else \
             FileSettings(zero_suppression='leading')
 
-        if dxf.header['$INSUNITS'] == 1:
-            fsettings.units = 'inch'
-            if not settings:
-                fsettings.format = (2, 5)
-        else:
-            fsettings.units = 'metric'
-            if not settings:
-                fsettings.format = (3, 4)
+        if '$INSUNITS' in dxf.header:      
+            if dxf.header['$INSUNITS'] == 1:
+                fsettings.units = 'inch'
+                if not settings:
+                    fsettings.format = (2, 5)
+            else:
+                fsettings.units = 'metric'
+                if not settings:
+                    fsettings.format = (3, 4)
 
         statements = []
         for entity in dxf.entities:
             if entity.dxftype == 'LWPOLYLINE':
+                statements.append(DxfPolylineStatement(entity))
+            elif entity.dxftype == 'POLYLINE':
                 statements.append(DxfPolylineStatement(entity))
             elif entity.dxftype == 'LINE':
                 statements.append(DxfLineStatement.from_entity(entity))
@@ -668,7 +681,7 @@ class DxfFile(CamFile):
                 statements.append(DxfArcStatement(entity))
             elif entity.dxftype == 'ARC':
                 statements.append(DxfArcStatement(entity))
-        
+         
         return cls(statements, fsettings, draw_mode, filename)
     
     @classmethod
